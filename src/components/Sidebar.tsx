@@ -55,10 +55,6 @@ const Sidebar: React.FC = () => {
     fetchProfiles();
   }, []);
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
   const isActiveCategory = (category: string) => {
     const params = new URLSearchParams(location.search);
     return params.get('category') === category || 

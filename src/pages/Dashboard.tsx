@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FiSearch, FiPlus, FiStar, FiTrash2, FiEdit, FiEye } from 'react-icons/fi';
 import { entries as entriesApi } from '../utils/api';
@@ -6,7 +6,7 @@ import EntryRevealModal from '../components/EntryRevealModal';
 import { Entry, Profile } from '../types';
 
 const Dashboard: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [profiles, setProfiles] = useState<{ [key: string]: Profile }>({});
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
   const pinned = searchParams.has('pinned') ? searchParams.get('pinned') === '1' : undefined;
 
   // Fetch entries and apply filters
-  const fetchEntries = async () => {
+  const fetchEntries = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await entriesApi.getAll({ 
@@ -47,12 +47,12 @@ const Dashboard: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [profileId, category, pinned, searchTerm]);
 
   // Fetch entries when filters change
   useEffect(() => {
     fetchEntries();
-  }, [profileId, category, pinned, searchParams]);
+  }, [fetchEntries]);
 
   // Handle search
   const handleSearch = (e: React.FormEvent) => {

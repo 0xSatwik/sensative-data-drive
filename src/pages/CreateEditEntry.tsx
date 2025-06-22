@@ -11,19 +11,6 @@ interface Profile {
   name: string;
 }
 
-interface Entry {
-  id: string;
-  title: string;
-  encrypted_data: string;
-  iv: string;
-  salt: string;
-  pinned: number;
-  category: 'mnemonic_phrase' | 'private_key' | 'password' | 'other';
-  profile_id: string;
-  created_at: number;
-  updated_at: number;
-}
-
 const categoryOptions = [
   { value: 'mnemonic_phrase', label: 'Mnemonic Phrase' },
   { value: 'private_key', label: 'Private Key' },
@@ -41,56 +28,6 @@ const CreateEditEntry: React.FC = () => {
   const [isFetching, setIsFetching] = useState(isEditMode);
   const [showData, setShowData] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        const response = await profilesApi.getAll();
-        if (response.data.success && response.data.profiles) {
-          setProfiles(response.data.profiles);
-          
-          // If there's at least one profile and we're in create mode, select the first one
-          if (response.data.profiles.length > 0 && !isEditMode) {
-            formik.setFieldValue('profile_id', response.data.profiles[0].id);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching profiles:', error);
-        setError('Failed to load profiles. Please try again later.');
-      }
-    };
-
-    const fetchEntry = async () => {
-      if (!isEditMode) return;
-      
-      try {
-        setIsFetching(true);
-        const response = await entriesApi.getById(id);
-        
-        if (response.data.success && response.data.entry) {
-          const entry = response.data.entry;
-          
-          // Set form values
-          formik.setValues({
-            title: entry.title,
-            profile_id: entry.profile_id,
-            category: entry.category,
-            data: '', // We don't load the encrypted data for editing
-            password: '',
-            confirmPassword: '',
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching entry:', error);
-        setError('Failed to load entry details. Please try again later.');
-      } finally {
-        setIsFetching(false);
-      }
-    };
-
-    fetchProfiles();
-    fetchEntry();
-  }, [id, isEditMode]);
 
   const formik = useFormik({
     initialValues: {
@@ -150,6 +87,56 @@ const CreateEditEntry: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const response = await profilesApi.getAll();
+        if (response.data.success && response.data.profiles) {
+          setProfiles(response.data.profiles);
+          
+          // If there's at least one profile and we're in create mode, select the first one
+          if (response.data.profiles.length > 0 && !isEditMode) {
+            formik.setFieldValue('profile_id', response.data.profiles[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching profiles:', error);
+        setError('Failed to load profiles. Please try again later.');
+      }
+    };
+
+    const fetchEntry = async () => {
+      if (!isEditMode) return;
+      
+      try {
+        setIsFetching(true);
+        const response = await entriesApi.getById(id);
+        
+        if (response.data.success && response.data.entry) {
+          const entry = response.data.entry;
+          
+          // Set form values
+          formik.setValues({
+            title: entry.title,
+            profile_id: entry.profile_id,
+            category: entry.category,
+            data: '', // We don't load the encrypted data for editing
+            password: '',
+            confirmPassword: '',
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching entry:', error);
+        setError('Failed to load entry details. Please try again later.');
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchProfiles();
+    fetchEntry();
+  }, [id, isEditMode, formik]);
 
   const formatCategoryInfo = () => {
     switch (formik.values.category) {
