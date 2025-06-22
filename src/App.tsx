@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CreateEditEntry from './pages/CreateEditEntry';
+import CreateProfile from './pages/CreateProfile';
 
 const App: React.FC = () => {
   return (
@@ -36,6 +37,11 @@ const App: React.FC = () => {
         <Route path="/entries/edit/:id" element={
           <Layout requireAuth>
             <CreateEditEntry />
+          </Layout>
+        } />
+        <Route path="/profiles/new" element={
+          <Layout requireAuth>
+            <CreateProfile />
           </Layout>
         } />
 

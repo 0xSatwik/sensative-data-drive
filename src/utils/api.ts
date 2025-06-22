@@ -38,12 +38,12 @@ api.interceptors.response.use(
 // Auth endpoints
 export const auth = {
   register: (email: string, password: string) => 
-    api.post('/api/auth/register', { email, password }),
+    api.post('/api/register', { email, password }),
   
   login: (email: string, password: string) => 
-    api.post('/api/auth/login', { email, password }),
+    api.post('/api/login', { email, password }),
   
-  logout: () => api.post('/api/auth/logout')
+  logout: () => api.post('/api/logout')
 };
 
 // Profile endpoints
