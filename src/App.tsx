@@ -1,26 +1,49 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import CreateEditEntry from './pages/CreateEditEntry';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        {/* Auth routes */}
+        <Route path="/login" element={
+          <Layout>
+            <Login />
+          </Layout>
+        } />
+        <Route path="/register" element={
+          <Layout>
+            <Register />
+          </Layout>
+        } />
+
+        {/* Protected routes */}
+        <Route path="/" element={
+          <Layout requireAuth>
+            <Dashboard />
+          </Layout>
+        } />
+        <Route path="/entries/new" element={
+          <Layout requireAuth>
+            <CreateEditEntry />
+          </Layout>
+        } />
+        <Route path="/entries/edit/:id" element={
+          <Layout requireAuth>
+            <CreateEditEntry />
+          </Layout>
+        } />
+
+        {/* Redirect any other route to home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;

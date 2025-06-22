@@ -1,0 +1,1 @@
+// This file is not needed with react-icons@4.8.0 as it includes proper TypeScript definitions 
