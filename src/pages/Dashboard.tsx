@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { FiSearch, FiPlus, FiStar, FiTrash2, FiEdit, FiEye } from 'react-icons/fi';
 import { entries as entriesApi } from '../utils/api';
 import EntryRevealModal from '../components/EntryRevealModal';
@@ -144,13 +144,13 @@ const Dashboard: React.FC = () => {
                 ? 'Pinned Entries' 
                 : 'All Entries'}
         </h1>
-        <a 
-          href="/entries/new"
+        <Link 
+          to="/entries/new"
           className="btn-primary inline-flex items-center"
         >
           <FiPlus className="mr-2 h-4 w-4" />
           New Entry
-        </a>
+        </Link>
       </div>
 
       <div className="mb-6">
@@ -184,12 +184,12 @@ const Dashboard: React.FC = () => {
       ) : entries.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-100">
           <p className="text-gray-500">No entries found.</p>
-          <a 
-            href="/entries/new" 
+          <Link 
+            to="/entries/new" 
             className="mt-4 inline-block text-primary-600 hover:text-primary-700"
           >
             Create your first entry
-          </a>
+          </Link>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -234,13 +234,13 @@ const Dashboard: React.FC = () => {
                   Reveal
                 </button>
                 
-                <a
-                  href={`/entries/edit/${entry.id}`}
+                <Link
+                  to={`/entries/edit/${entry.id}`}
                   className="btn-secondary text-sm py-1 px-3"
                 >
                   <FiEdit className="h-4 w-4 mr-1 inline" />
                   Edit
-                </a>
+                </Link>
                 
                 <button
                   onClick={() => handleDelete(entry.id)}
