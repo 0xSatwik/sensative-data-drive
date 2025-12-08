@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiHome, FiKey, FiList, FiStar, FiPlus, FiRefreshCw, FiTrash2, FiLock, FiFolder } from 'react-icons/fi';
+import { FiHome, FiKey, FiList, FiStar, FiPlus, FiRefreshCw, FiTrash2, FiLock } from 'react-icons/fi';
 import { profiles } from '../utils/api';
 
 interface Profile {
