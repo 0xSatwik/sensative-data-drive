@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { FiArrowLeft, FiEye, FiEyeOff, FiInfo } from 'react-icons/fi';
+import { FiArrowLeft, FiEye, FiEyeOff, FiInfo, FiShield } from 'react-icons/fi';
 import { profiles as profilesApi, entries as entriesApi } from '../utils/api';
-import { encryptData } from '../utils/crypto';
+import { encryptData, isPasswordStrongEnough } from '../utils/crypto';
+import PasswordStrengthMeter from '../components/PasswordStrengthMeter';
 
 interface Profile {
   id: string;
@@ -22,7 +23,7 @@ const CreateEditEntry: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditMode = !!id;
-  
+
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(isEditMode);
@@ -43,7 +44,13 @@ const CreateEditEntry: React.FC = () => {
       profile_id: Yup.string().required('Please select a profile'),
       category: Yup.string().required('Please select a category'),
       data: Yup.string().required('Data is required'),
-      password: Yup.string().required('Password is required for encryption'),
+      password: Yup.string()
+        .required('Password is required for encryption')
+        .test(
+          'password-strength',
+          'Password is too weak. Use 12+ characters with uppercase, lowercase, numbers, and symbols.',
+          (value) => value ? isPasswordStrongEnough(value) : false
+        ),
       confirmPassword: Yup.string()
         .oneOf([Yup.ref('password'), ''], 'Passwords must match')
         .required('Please confirm your password'),
@@ -53,8 +60,8 @@ const CreateEditEntry: React.FC = () => {
         setIsLoading(true);
         setError('');
 
-        // Encrypt the data with the provided password
-        const { encryptedData, iv, salt } = encryptData(values.data, values.password);
+        // Encrypt the data with the provided password (async with AES-GCM)
+        const { encryptedData, iv, salt, version } = await encryptData(values.data, values.password);
 
         // Prepare data for API
         const entryData = {
@@ -63,7 +70,8 @@ const CreateEditEntry: React.FC = () => {
           encrypted_data: encryptedData,
           iv,
           salt,
-          category: values.category
+          category: values.category,
+          version // Include encryption version for backward compatibility
         };
 
         // Create or update entry
@@ -94,7 +102,7 @@ const CreateEditEntry: React.FC = () => {
         const response = await profilesApi.getAll();
         if (response.data.success && response.data.profiles) {
           setProfiles(response.data.profiles);
-          
+
           // If there's at least one profile and we're in create mode, select the first one
           if (response.data.profiles.length > 0 && !isEditMode) {
             formik.setFieldValue('profile_id', response.data.profiles[0].id);
@@ -108,14 +116,14 @@ const CreateEditEntry: React.FC = () => {
 
     const fetchEntry = async () => {
       if (!isEditMode) return;
-      
+
       try {
         setIsFetching(true);
         const response = await entriesApi.getById(id);
-        
+
         if (response.data.success && response.data.entry) {
           const entry = response.data.entry;
-          
+
           // Set form values
           formik.setValues({
             title: entry.title,
@@ -136,7 +144,8 @@ const CreateEditEntry: React.FC = () => {
 
     fetchProfiles();
     fetchEntry();
-  }, [id, isEditMode, formik]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isEditMode]); // Don't include formik - it causes infinite re-renders
 
   const formatCategoryInfo = () => {
     switch (formik.values.category) {
@@ -179,6 +188,15 @@ const CreateEditEntry: React.FC = () => {
           {isEditMode ? 'Edit Entry' : 'Add New Entry'}
         </h1>
 
+        {/* Security info banner */}
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start">
+          <FiShield className="h-5 w-5 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
+          <div className="text-sm text-green-700">
+            <strong>Enhanced Security:</strong> Your data is encrypted with AES-256-GCM using 600,000 PBKDF2 iterations.
+            Only you can decrypt it with your password.
+          </div>
+        </div>
+
         {error && (
           <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
             {error}
@@ -198,9 +216,8 @@ const CreateEditEntry: React.FC = () => {
                 value={formik.values.title}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                className={`input ${
-                  formik.touched.title && formik.errors.title ? 'border-red-500' : ''
-                }`}
+                className={`input ${formik.touched.title && formik.errors.title ? 'border-red-500' : ''
+                  }`}
                 placeholder="E.g., Metamask Wallet"
               />
               {formik.touched.title && formik.errors.title ? (
@@ -233,11 +250,10 @@ const CreateEditEntry: React.FC = () => {
                     value={formik.values.profile_id}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    className={`input ${
-                      formik.touched.profile_id && formik.errors.profile_id
-                        ? 'border-red-500'
-                        : ''
-                    }`}
+                    className={`input ${formik.touched.profile_id && formik.errors.profile_id
+                      ? 'border-red-500'
+                      : ''
+                      }`}
                   >
                     <option value="">Select a profile</option>
                     {profiles.map((profile) => (
@@ -264,11 +280,10 @@ const CreateEditEntry: React.FC = () => {
               value={formik.values.category}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`input ${
-                formik.touched.category && formik.errors.category
-                  ? 'border-red-500'
-                  : ''
-              }`}
+              className={`input ${formik.touched.category && formik.errors.category
+                ? 'border-red-500'
+                : ''
+                }`}
             >
               {categoryOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -291,10 +306,10 @@ const CreateEditEntry: React.FC = () => {
               {formik.values.category === 'mnemonic_phrase'
                 ? 'Mnemonic Phrase'
                 : formik.values.category === 'private_key'
-                ? 'Private Key'
-                : formik.values.category === 'password'
-                ? 'Password'
-                : 'Data'}
+                  ? 'Private Key'
+                  : formik.values.category === 'password'
+                    ? 'Password'
+                    : 'Data'}
             </label>
             <div className="relative">
               <textarea
@@ -303,15 +318,14 @@ const CreateEditEntry: React.FC = () => {
                 value={formik.values.data}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                className={`input h-24 resize-none ${
-                  formik.touched.data && formik.errors.data ? 'border-red-500' : ''
-                }`}
-                placeholder={`Enter your ${formik.values.category === 'mnemonic_phrase' 
-                  ? 'seed phrase' 
-                  : formik.values.category === 'private_key' 
-                    ? 'private key' 
-                    : formik.values.category === 'password' 
-                      ? 'password' 
+                className={`input h-24 resize-none ${formik.touched.data && formik.errors.data ? 'border-red-500' : ''
+                  }`}
+                placeholder={`Enter your ${formik.values.category === 'mnemonic_phrase'
+                  ? 'seed phrase'
+                  : formik.values.category === 'private_key'
+                    ? 'private key'
+                    : formik.values.category === 'password'
+                      ? 'password'
                       : 'secure data'}`}
               />
             </div>
@@ -333,9 +347,8 @@ const CreateEditEntry: React.FC = () => {
                   value={formik.values.password}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className={`input pr-10 ${
-                    formik.touched.password && formik.errors.password ? 'border-red-500' : ''
-                  }`}
+                  className={`input pr-10 ${formik.touched.password && formik.errors.password ? 'border-red-500' : ''
+                    }`}
                   placeholder="Enter password for encryption"
                 />
                 <button
@@ -350,8 +363,12 @@ const CreateEditEntry: React.FC = () => {
                   )}
                 </button>
               </div>
+
+              {/* Password strength meter */}
+              <PasswordStrengthMeter password={formik.values.password} />
+
               {formik.touched.password && formik.errors.password ? (
-                <div className="form-error">{formik.errors.password}</div>
+                <div className="form-error mt-2">{formik.errors.password}</div>
               ) : null}
             </div>
 
@@ -367,11 +384,10 @@ const CreateEditEntry: React.FC = () => {
                   value={formik.values.confirmPassword}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className={`input pr-10 ${
-                    formik.touched.confirmPassword && formik.errors.confirmPassword
-                      ? 'border-red-500'
-                      : ''
-                  }`}
+                  className={`input pr-10 ${formik.touched.confirmPassword && formik.errors.confirmPassword
+                    ? 'border-red-500'
+                    : ''
+                    }`}
                   placeholder="Confirm password"
                 />
               </div>
@@ -411,4 +427,4 @@ const CreateEditEntry: React.FC = () => {
   );
 };
 
-export default CreateEditEntry; 
+export default CreateEditEntry;

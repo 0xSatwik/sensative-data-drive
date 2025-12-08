@@ -7,6 +7,7 @@ export interface Entry {
   pinned: number;
   profile_id: string;
   category: 'mnemonic_phrase' | 'private_key' | 'password' | 'other';
+  version?: number; // Encryption version: 2 = AES-GCM, undefined/1 = legacy AES-CBC
   created_at: number;
   updated_at: number;
 }

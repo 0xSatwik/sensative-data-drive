@@ -1,16 +1,21 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CreateEditEntry from './pages/CreateEditEntry';
 import CreateProfile from './pages/CreateProfile';
+import NotFound from './pages/NotFound';
 
 const App: React.FC = () => {
   return (
     <Router>
       <Routes>
+        {/* Public landing page - default route */}
+        <Route path="/" element={<Home />} />
+
         {/* Auth routes */}
         <Route path="/login" element={
           <Layout>
@@ -24,7 +29,7 @@ const App: React.FC = () => {
         } />
 
         {/* Protected routes */}
-        <Route path="/" element={
+        <Route path="/dashboard" element={
           <Layout requireAuth>
             <Dashboard />
           </Layout>
@@ -45,8 +50,8 @@ const App: React.FC = () => {
           </Layout>
         } />
 
-        {/* Redirect any other route to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* 404 Page */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );
