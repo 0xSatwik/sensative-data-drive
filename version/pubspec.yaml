@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.10.7 <4.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -17,7 +17,7 @@ dependencies:
   dio: ^5.4.1
   
   # Security
-  flutter_secure_storage: ^9.0.0
+  flutter_secure_storage: ^8.0.0
   encrypt: ^5.0.3
   crypto: ^3.0.3
   pointycastle: ^3.7.3
