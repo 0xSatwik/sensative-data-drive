@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/models.dart';
@@ -8,6 +9,9 @@ class ApiService {
     BaseOptions(baseUrl: _baseUrl, contentType: 'application/json'),
   );
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  final _authStreamController = StreamController<void>.broadcast();
+  Stream<void> get onUnauthorized => _authStreamController.stream;
 
   ApiService() {
     _dio.interceptors.add(
@@ -22,12 +26,16 @@ class ApiService {
         onError: (DioException e, handler) async {
           if (e.response?.statusCode == 401) {
             await _storage.delete(key: 'token');
-            // TODO: Trigger logout notification or navigation
+            _authStreamController.add(null);
           }
           return handler.next(e);
         },
       ),
     );
+  }
+
+  void dispose() {
+    _authStreamController.close();
   }
 
   // --- Auth ---

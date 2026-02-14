@@ -17,9 +17,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch entries on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<EntryProvider>().fetchEntries();
+
+      // Listen for session warnings
+      final authProvider = context.read<AuthProvider>();
+      authProvider.sessionWarning.listen((minutesRemaining) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Session Expiring'),
+              content: Text(
+                'Your session will expire in $minutesRemaining minutes due to inactivity.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    context.read<AuthProvider>().resetSessionTimer();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('I\'m still here'),
+                ),
+              ],
+            ),
+          );
+        }
+      });
     });
   }
 

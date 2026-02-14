@@ -19,8 +19,15 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
 
+  // Stream for session warnings (int minutesRemaining)
+  final _sessionWarningController = StreamController<int>.broadcast();
+  Stream<int> get sessionWarning => _sessionWarningController.stream;
+
   AuthProvider() {
     _init();
+    _apiService.onUnauthorized.listen((_) {
+      logout();
+    });
   }
 
   Future<void> _init() async {
@@ -81,10 +88,10 @@ class AuthProvider with ChangeNotifier {
     _warningTimer = Timer(
       const Duration(minutes: _timeoutMinutes - _warningMinutes),
       () {
-        // TODO: Notify UI to show warning dialog
         if (kDebugMode) {
           print('Session warning: $_warningMinutes minutes remaining');
         }
+        _sessionWarningController.add(_warningMinutes);
       },
     );
 
@@ -108,6 +115,10 @@ class AuthProvider with ChangeNotifier {
   @override
   void dispose() {
     _cancelTimers();
+    _sessionWarningController.close();
+    // _apiService.dispose(); // ApiService is created inside, but listen subscription should be cancelled.
+    // Ideally ApiService should be injected or singleton.
+    // For now, simpler to just let it be as AuthProvider is likely a singleton or scoped to app.
     super.dispose();
   }
 }
