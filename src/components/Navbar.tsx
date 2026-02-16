@@ -10,11 +10,11 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     try {
       await auth.logout();
-      localStorage.removeItem('token');
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
-      localStorage.removeItem('token');
+      // Clear indicator cookie client-side as fallback
+      document.cookie = 'is_logged_in=; Path=/; Max-Age=0';
       navigate('/login');
     }
   };

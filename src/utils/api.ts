@@ -8,19 +8,10 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Send/receive httpOnly cookies with cross-origin requests
 });
 
-// Add a request interceptor to include the auth token in headers
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// No request interceptor needed — cookies are sent automatically by the browser
 
 // Add a response interceptor to handle auth errors
 api.interceptors.response.use(
@@ -28,12 +19,18 @@ api.interceptors.response.use(
   (error) => {
     // Redirect to login if unauthorized
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
+      // Clear the JS-readable indicator cookie
+      document.cookie = 'is_logged_in=; Path=/; Max-Age=0';
       window.location.href = '/login';
     }
     return Promise.reject(error);
   }
 );
+
+// Helper to check if user is logged in (reads JS-accessible indicator cookie)
+export function isLoggedIn(): boolean {
+  return document.cookie.split(';').some(c => c.trim().startsWith('is_logged_in=1'));
+}
 
 // Auth endpoints
 export const auth = {
@@ -43,7 +40,10 @@ export const auth = {
   login: (email: string, password: string) =>
     api.post('/api/login', { email, password }),
 
-  logout: () => api.post('/api/logout')
+  logout: () => api.post('/api/logout').finally(() => {
+    // Clear the JS-readable indicator cookie on the client side
+    document.cookie = 'is_logged_in=; Path=/; Max-Age=0';
+  })
 };
 
 // Profile endpoints
@@ -121,4 +121,4 @@ export const entries = {
   togglePin: (id: string) => api.put(`/api/entries/${id}/pin`)
 };
 
-export default api; 
+export default api;

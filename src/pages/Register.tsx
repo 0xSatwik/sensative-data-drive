@@ -36,8 +36,7 @@ const Register: React.FC = () => {
 
         const response = await auth.register(values.email, values.password);
 
-        if (response.data.success && response.data.token) {
-          localStorage.setItem('token', response.data.token);
+        if (response.data.success) {
           navigate('/');
         } else {
           setError('Registration failed. Please try again.');

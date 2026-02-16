@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import { useSessionTimeout } from '../utils/useSessionTimeout';
+import { isLoggedIn } from '../utils/api';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -64,22 +65,22 @@ const SessionWarningModal: React.FC<{
 
 const Layout: React.FC<LayoutProps> = ({ children, requireAuth = false }) => {
   const location = useLocation();
-  const token = localStorage.getItem('token');
+  const loggedIn = isLoggedIn();
 
   // Session timeout - only active for authenticated pages
   const { remainingTime, showWarning, extendSession } = useSessionTimeout({
     timeoutMinutes: 15,
     warningMinutes: 2,
-    enabled: requireAuth && !!token
+    enabled: requireAuth && loggedIn
   });
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    document.cookie = 'is_logged_in=; Path=/; Max-Age=0';
     window.location.href = '/login';
   };
 
   // If authentication is required but user is not logged in
-  if (requireAuth && !token) {
+  if (requireAuth && !loggedIn) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

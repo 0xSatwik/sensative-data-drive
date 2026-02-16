@@ -42,7 +42,8 @@ export const useSessionTimeout = ({
     }, [showWarning]);
 
     const logout = useCallback(() => {
-        localStorage.removeItem('token');
+        // Clear indicator cookie
+        document.cookie = 'is_logged_in=; Path=/; Max-Age=0';
         if (onTimeout) {
             onTimeout();
         }
@@ -74,8 +75,9 @@ export const useSessionTimeout = ({
     const startTimer = useCallback(() => {
         if (!enabled) return;
 
-        const token = localStorage.getItem('token');
-        if (!token) return;
+        // Check if user is still logged in via indicator cookie
+        const loggedIn = document.cookie.split(';').some(c => c.trim().startsWith('is_logged_in=1'));
+        if (!loggedIn) return;
 
         // Clear existing timers but don't reset state unnecessarily
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -130,8 +132,8 @@ export const useSessionTimeout = ({
     useEffect(() => {
         if (!enabled) return;
 
-        const token = localStorage.getItem('token');
-        if (!token) return;
+        const loggedIn = document.cookie.split(';').some(c => c.trim().startsWith('is_logged_in=1'));
+        if (!loggedIn) return;
 
         const activityEvents = ['mousedown', 'keydown', 'touchstart'];
 

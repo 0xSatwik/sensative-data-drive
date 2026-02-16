@@ -5,10 +5,11 @@ import {
     FiCheckCircle, FiCloud, FiSmartphone, FiZap,
     FiGlobe, FiCpu, FiUserCheck, FiGrid
 } from 'react-icons/fi';
+import { isLoggedIn } from '../utils/api';
 
 const Home: React.FC = () => {
-    // Check if user is logged in
-    const isLoggedIn = !!localStorage.getItem('token');
+    // Check if user is logged in via indicator cookie
+    const loggedIn = isLoggedIn();
 
     const features = [
         {
@@ -70,7 +71,7 @@ const Home: React.FC = () => {
                             <span className="text-xl font-bold text-gradient">SecureVault</span>
                         </Link>
                         <div className="flex items-center gap-2 sm:gap-3">
-                            {isLoggedIn ? (
+                            {loggedIn ? (
                                 // Show Dashboard button if logged in
                                 <Link to="/dashboard" className="btn-primary">
                                     <FiGrid className="h-4 w-4" />
@@ -126,7 +127,7 @@ const Home: React.FC = () => {
 
                     {/* CTA Buttons */}
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-16 px-4">
-                        {isLoggedIn ? (
+                        {loggedIn ? (
                             <Link to="/dashboard" className="btn-primary text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto">
                                 <FiGrid className="h-5 w-5" />
                                 Go to Dashboard
@@ -291,7 +292,7 @@ const Home: React.FC = () => {
                                 Join thousands of crypto holders who trust SecureVault to protect their most valuable secrets.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-                                {isLoggedIn ? (
+                                {loggedIn ? (
                                     <Link
                                         to="/dashboard"
                                         className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-primary-600 font-semibold rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 inline-flex items-center justify-center gap-2"

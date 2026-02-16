@@ -30,8 +30,7 @@ const Login: React.FC = () => {
 
         const response = await auth.login(values.email, values.password);
 
-        if (response.data.success && response.data.token) {
-          localStorage.setItem('token', response.data.token);
+        if (response.data.success) {
           navigate('/');
         } else {
           setError('Login failed. Please check your credentials and try again.');
